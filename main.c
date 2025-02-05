@@ -12,21 +12,20 @@
 #define MAX_HEIGHT 100
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 600
-#define MAX_NOME 50
+#define MAX_NOME 20
 #define MAX_HISTORY_SIZE 180
 
 typedef struct {
     Vector2 position;   // Coordenadas (x, y)
     Vector2 velocity;   // Velocidade (x, y)
     Rectangle rect;     // Retangulo pra colisao
-    bool isGrounded;    // Determina se est√° no chao
-    bool facingRight;   // Determina direcao que est√° encarando
-    bool isShooting;    // Determina se est√° atirando ou nao
+    bool isGrounded;    // Determina se est· no chao
+    bool facingRight;   // Determina direcao que est· encarando
+    bool isShooting;    // Determina se est· atirando ou nao
     int health;         // Pontos de vida
     int points;         // Pontos para o placar
-    char nome[MAX_NOME];// Nome salvo no leaderbord
-    Vector2 spawnPoint; // Spawnpoint definido no mapa
-    int hasFinished;    // Determina se o jogador terminou o jogo
+    char nome[MAX_NOME];
+    Vector2 spawnPoint;
 } Player;
 
 typedef struct {
@@ -41,74 +40,27 @@ typedef struct {
     Vector2 minPosition; // posicao minima (x, y)
     Vector2 maxPosition; // posicao maxima (x, y)
     int health;         // pontos de vida
-    bool active;        // determina se o inimigo est√° ativo
+    bool active;        // determina se o inimigo est· ativo
 } Enemy;
 
 typedef struct {
-    Rectangle rect;  // Propriedades de posi√ß√£o e tamanho
-    Vector2 speed;   // Velocidade do proj√©til
-    bool active;     // Indica se o proj√©til est√° ativo
-    Color color;    // Cor do projetil
+    Rectangle rect;  // Propriedades de posiÁ„o e tamanho
+    Vector2 speed;   // Velocidade do projÈtil
+    bool active;     // Indica se o projÈtil est· ativo
+    Color color;
 } Projectile;
 
 typedef struct {
     Vector2 position;   // Coordenadas (x, y)
-    Rectangle rect;     // Ret√¢ngulo para colis√£o
-    bool active;        // Se a moeda est√° ativa ou n√£o
-    int points;         // Quantidade de pontos que a moeda d√°
+    Rectangle rect;     // Ret‚ngulo para colis„o
+    bool active;        // Se a moeda est· ativa ou n„o
+    int points;         // Quantidade de pontos que a moeda d·
 } Coin;
 
 typedef struct {
-    Vector2 positionHistory[MAX_HISTORY_SIZE]; // Coordenadas (x,y) ; [Array de posi√ß√µes poss√≠veis do jogador]
-    int currentIndex; // E o currentIndex indica qual dessas posi√ß√µes no array ele est√°
+    Vector2 positionHistory[MAX_HISTORY_SIZE]; // Coordenadas (x,y) ; [Array de posiÁıes possÌveis do jogador]
+    int currentIndex; // E o currentIndex indica qual dessas posiÁıes no array ele est·
 } PlayerHistory;
-
-typedef struct {
-    float gravity;
-    float playerSpeed;
-    float jumpForce;
-    float enemySpeedX;
-    float enemySpeedY;
-    float enemyOffset;
-    float projectileWidth;
-    float projectileHeight;
-    float projectileSpeed;
-    float frameSpeed;
-} GameConfig;
-
-typedef struct {
-    Texture2D background;
-    Texture2D blockTexture;
-    Texture2D obstacleTexture;
-    Texture2D gateTexture;
-    Texture2D enemiesTexture;
-    Texture2D heartTexture;
-    Texture2D playerTexture;
-    Texture2D enemyTexture;
-    Rectangle playerFrameRec;
-    Rectangle enemyFrameRec;
-    int playerFrameWidth;
-    int enemyFrameWidth;
-} GameAssets;
-
-
-typedef struct {
-    Player player;
-    Camera2D camera;
-    Coin coins[MAX_WIDTH];
-    int coinCount;
-    Enemy enemies[MAX_WIDTH];
-    int enemyCount;
-    Projectile projectiles[MAX_PROJECTILES];
-    float frameTimer;           // Frame para identificar sprite do jogador
-    float frameTimerEnemies;    // Frame para trocar sprite do jogador
-    unsigned currentFrame;      // Frame para identificar sprite do inimigo
-    unsigned currentEnemyFrame; // Frame para trocar sprite do inimigo
-    int guarda; // Guarda a op√ß√£o do jogador no menu
-    char map[MAX_HEIGHT][MAX_WIDTH];
-    int rows;
-    int cols;
-} GameState;
 
 // Le o mapa a partir de um arquivo
 void LoadMap(const char* filename, char map[MAX_HEIGHT][MAX_WIDTH], int* rows, int* cols) {
@@ -124,16 +76,14 @@ void LoadMap(const char* filename, char map[MAX_HEIGHT][MAX_WIDTH], int* rows, i
 
     char line[MAX_WIDTH];  // buffer pra armazenar cada linha e coluna
     while (fgets(line, sizeof(line), file)) { // Le linha por linha
-        int length = strlen(line);  // Recebe o comprimento da linha atual
-        if (line[length - 1] == '\n') line[length - 1] = '\0';  // Remove o caractere de nova linha
+        size_t len = strlen(line);  // Recebe o comprimento da linha atual
+        if (line[len - 1] == '\n') line[len - 1] = '\0';  // Remove o caractere de nova linha
 
         // Copia linha pro array
         strncpy(map[*rows], line, MAX_WIDTH);
 
         (*rows)++;  // Incrementa contagem da linha
-        if (length > *cols) {
-            *cols = length - 1;  // Caso coluna atual seja maior do que a ultima, aumenta o numero de colunas
-        }
+        if (len > *cols) *cols = len - 1;  // Atualiza contagem da coluna se a linha atual È maior do que a anterior
     }
 
     fclose(file);
@@ -149,7 +99,7 @@ void ApplyGravity(Player *player, float gravity, float dt) {
     player->velocity.y += gravity * dt;
 }
 
-// Determina ou n√£o se existe um spawnpoint para o jogador, caso sim, aplica as coordenadas encontradas no array x e y como ponto inicial do jogador
+// Determina ou n„o se existe um spawnpoint para o jogador, caso sim, aplica as coordenadas encontradas no array x e y como ponto inicial do jogador
 bool FindPlayerSpawnPoint(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, Player* player) {
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
@@ -167,19 +117,14 @@ bool FindPlayerSpawnPoint(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, P
     return false; // Nenhuma letra P foi encontrada, nao existe spawnpoint
 }
 
-void UpdateEnemyAnimationState(float *frameTimer, float frameSpeed, unsigned *currentFrame, Rectangle *frameRec, int frameWidth) {
-    *frameTimer += GetFrameTime(); // Pega tempo desde o ultimo frame
-    if (*frameTimer >= frameSpeed) { // Troca sprite caso tempo decorrido for maior ou igual ao tempo desde o ultimo frame
-        *frameTimer = 0.0f; // Reinicia timer p contagem
+void UpdateEnemyAnimationState(Enemy *enemy, float *frameTimer, float frameSpeed, unsigned *currentFrame, Rectangle *frameRec, int frameWidth) {
+    *frameTimer += GetFrameTime();
+    if (*frameTimer >= frameSpeed) {
+        *frameTimer = 0.0f;
 
-        if (*currentFrame == 0) {
-            *currentFrame = 1;
-        } else {
-            *currentFrame = 0;
-        }
+        *currentFrame = (*currentFrame == 0) ? 1 : 0;
     }
 
-    // Encaixa sprite dentro do retangulo
     frameRec->x = frameWidth * (*currentFrame);
     frameRec->width = frameWidth;
 }
@@ -192,13 +137,12 @@ void RenderBackground(Texture2D background, int rows, int cols) {
     }
 }
 
+
 // Renderiza moedas
 void RenderCoins(Coin coins[MAX_WIDTH], int coinCount) {
     for (int i = 0; i < coinCount; i++) {
         if (coins[i].active) {
-            DrawCircle((int)(coins[i].rect.x + coins[i].rect.width / 2.5),
-                       (int)(coins[i].rect.y + coins[i].rect.height / 2.5),
-                       coins[i].rect.width / 2.5, YELLOW);
+            DrawRectangleRec(coins[i].rect, YELLOW);  // Draw coin as a rectangle (yellow color)
         }
     }
 }
@@ -213,14 +157,14 @@ void RenderProjectiles(Projectile projectiles[MAX_PROJECTILES]) {
 }
 
 // Renderiza inimigos
-void RenderEnemies(Enemy enemies[MAX_ENEMIES], int enemyCount, float blockSize, Texture2D enemyTexture,Rectangle *enemyFrameRec, float *frameTimer, unsigned *currentFrame) {
+void RenderEnemies(Enemy enemies[MAX_ENEMIES], int enemyCount, float blockSize, Texture2D enemyTexture,
+                   Rectangle *enemyFrameRec, float *frameTimer, unsigned *currentFrame) {
     for (int i = 0; i < enemyCount; i++) {
         if (enemies[i].active) {
-            UpdateEnemyAnimationState(frameTimer, 0.5f, currentFrame, enemyFrameRec, 16); // Atualiza sprite
+            UpdateEnemyAnimationState(&enemies[i], frameTimer, 0.5f, currentFrame, enemyFrameRec, 16);
 
-            Rectangle destRect = {enemies[i].position.x, enemies[i].position.y, enemyFrameRec->width, enemyFrameRec->height}; // Cria retangulo p colissao
+            Rectangle destRect = {enemies[i].position.x, enemies[i].position.y, enemyFrameRec->width, enemyFrameRec->height};
 
-            // Desenha inimigo com textura e retangulo criado acima
             DrawTexturePro(
                 enemyTexture,
                 *enemyFrameRec,
@@ -237,47 +181,18 @@ void RenderEnemies(Enemy enemies[MAX_ENEMIES], int enemyCount, float blockSize, 
 void RenderMap(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, float blockSize, Texture2D blockTexture, Texture2D obstacleTexture, Texture2D gateTexture) {
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
-            if (map[y][x] == 'B') { // Caso for bloco
+            if (map[y][x] == 'B') {
                 Rectangle destRect = {x * blockSize, y * blockSize, blockSize, blockSize};
                 DrawTexturePro(blockTexture, (Rectangle){0, 0, blockTexture.width, blockTexture.height}, destRect, (Vector2){0, 0}, 0.0f, WHITE);
-            } else if (map[y][x] == 'O') { // Caso for obstaculo
+            } else if (map[y][x] == 'O') {
                 Rectangle destRect = {x * blockSize, y * blockSize, blockSize, blockSize};
                 DrawTexturePro(obstacleTexture, (Rectangle){0, 0, obstacleTexture.width, obstacleTexture.height}, destRect, (Vector2){0, 0}, 0.0f, WHITE);
-            } else if (map[y][x] == 'G') { // Caso for potal (gate)
+            } else if (map[y][x] == 'G') {
                 Rectangle destRect = {x * blockSize, y * blockSize - 16, blockSize * 2, blockSize * 2};
                 DrawTexturePro(gateTexture, (Rectangle) {0, 0, gateTexture.width, gateTexture.height}, destRect, (Vector2){0, 0}, 0.0f, WHITE);
             }
         }
     }
-}
-
-void RenderHUD(int health, Texture2D heartTexture, int points) {
-    // Desenha cora√ß√µes (pontos devida do jogador)
-    int heartX = 85;
-    int heartY = 37;
-    float heartWidth = 30.0f;
-    float heartHeight = 30.0f;
-
-    for (int i = 0; i < health; i++) {
-        Rectangle destRect = { heartX + i * (heartWidth + 5), heartY, heartWidth, heartHeight };
-        DrawTexturePro(heartTexture, (Rectangle) {0, 0, heartTexture.width, heartTexture.height}, destRect, (Vector2){0, 0}, 0.0f, WHITE);
-    }
-
-    // Desenha texto "Vida"
-    int textX = 10;
-    int textY = 40;
-    int textHeight = 20;
-    int textWidth = MeasureText("Vida:", textHeight);
-    DrawRectangle(textX - 5, textY - 5, textWidth + 10, textHeight + 10, BLACK);
-    DrawText("Vida:", textX, textY, textHeight, WHITE);
-
-    // Desenha pontos do jogador
-    int pointsX = 10;
-    int pointsY = 70;
-    int pointsHeight = 20;
-    int pointsWidth = MeasureText(TextFormat("Pontos: %d", points), pointsHeight);
-    DrawRectangle(pointsX - 5, pointsY - 5, pointsWidth + 10, pointsHeight + 10, BLACK);
-    DrawText(TextFormat("Pontos: %d", points), pointsX, pointsY, pointsHeight, WHITE);
 }
 
 // Inicializacao do jogador
@@ -292,7 +207,6 @@ Player InitializePlayer() {
         3,
         0,
         " \n",
-        0,
         0
     };
     return player;
@@ -338,11 +252,12 @@ int InitializeEnemies(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, Enemy
             if (map[y][x] == 'M') {
                 enemies[enemyCount].position = (Vector2){x * blockSize, y * blockSize};
                 enemies[enemyCount].velocity = (Vector2){enemySpeedX, enemySpeedY}; // Velocidade do inimigo
-                enemies[enemyCount].rect = (Rectangle){enemies[enemyCount].position.x, enemies[enemyCount].position.y, blockSize, blockSize}; // Retangulo p colisao
-                enemies[enemyCount].minPosition = enemies[enemyCount].position; // Posicao minimia √© o spawnpoint
+                //LINHA PARA MUDAR ABAIXO
+                enemies[enemyCount].rect = (Rectangle){enemies[enemyCount].position.x, enemies[enemyCount].position.y, blockSize, blockSize};
+                enemies[enemyCount].minPosition = enemies[enemyCount].position; // Posicao minimia È o spawnpoint
                 enemies[enemyCount].maxPosition = (Vector2){enemies[enemyCount].position.x + offset, enemies[enemyCount].position.y}; // Posicao maxima
-                enemies[enemyCount].health = 1; // Vida que come√ßa
-                enemies[enemyCount].active = true; // Inimigo √© ativado
+                enemies[enemyCount].health = 1; // Vida que comeÁa
+                enemies[enemyCount].active = true; // Inimigo È ativado
                 enemyCount++;
             }
         }
@@ -358,10 +273,16 @@ int InitializeCoins(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, Coin co
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
             if (map[y][x] == 'C') { // Moeda no mapa
-                coins[coinCount].position = (Vector2){x * blockSize, y * blockSize};
-                coins[coinCount].rect = (Rectangle){coins[coinCount].position.x, coins[coinCount].position.y, blockSize, blockSize}; // Retangulo p colisao
+                coins[coinCount].position = (Vector2)
+                {
+                    x * blockSize, y * blockSize
+                };
+                coins[coinCount].rect = (Rectangle)
+                {
+                    coins[coinCount].position.x, coins[coinCount].position.y, blockSize, blockSize
+                };
                 coins[coinCount].active = true; // Marca a moeda como ativa
-                coins[coinCount].points = 10; // A moeda d√° 10
+                coins[coinCount].points = 10; // A moeda d· 10
                 coinCount++;
             }
         }
@@ -370,7 +291,6 @@ int InitializeCoins(char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, Coin co
     return coinCount;
 }
 
-// Volta o player para o spawnpoint
 void HandleRespawn(Player *player, float screenHeight) {
     if (player->position.y > screenHeight) {
         player->position = player->spawnPoint;
@@ -380,7 +300,7 @@ void HandleRespawn(Player *player, float screenHeight) {
 }
 
 // Aplica movimento para o jogador conforme a tecla pressionada
-void CheckMovementKey(Player *player, float moveSpeed, float jumpForce) {
+void CheckPressedKey(Player *player, float moveSpeed, float jumpForce) {
     player->velocity.x = 0;
 
     if (IsKeyDown(KEY_RIGHT)) {
@@ -397,7 +317,7 @@ void CheckMovementKey(Player *player, float moveSpeed, float jumpForce) {
     }
 }
 
-// Cria projetil com coordenadas baseadas na posi√ß√£o atual do jogador e aplica estado do jogador estar atirando durante 0.5 segundos
+// Cria projetil com coordenadas baseadas na posiÁ„o atual do jogador e aplica estado do jogador estar atirando durante 0.5 segundos
 void CreateProjectile(Player *player, Projectile projectiles[MAX_PROJECTILES], float projectileWidth, float projectileHeight, float projectileSpeed, float dt) {
     static float shootTimer = 0.0f;
     float animationDuration = 0.5;
@@ -424,7 +344,6 @@ void CreateProjectile(Player *player, Projectile projectiles[MAX_PROJECTILES], f
         }
     }
 
-    // Variacao de disparo (vertical)
     if (IsKeyPressed(KEY_X)) {
         player->isShooting = true;
 
@@ -442,13 +361,12 @@ void CreateProjectile(Player *player, Projectile projectiles[MAX_PROJECTILES], f
                     projectiles[i].speed = (Vector2){0,400};
                 }
                 projectiles[i].active = true;
-                projectiles[i].color = BLUE;
+                projectiles[i].color = BLUE; // Blue projectile
                 break;
             }
         }
     }
 
-    // Duracao da animacao de atirar
     if (player->isShooting) {
         shootTimer += dt;
         if (shootTimer >= animationDuration) {
@@ -458,18 +376,17 @@ void CreateProjectile(Player *player, Projectile projectiles[MAX_PROJECTILES], f
     }
 }
 
-// Move camera de acordo com posi√ß√£o do jogador
+// Move camera de acordo com posiÁ„o do jogador
 void MoveCamera(Camera2D *camera, Player *player) {
-    camera->target = (Vector2) {
+    camera->target = (Vector2)
+    {
         player->position.x + player->rect.width / 2, SCREEN_HEIGHT / 2 - 110
     };
 }
 
 // Move jogador com base na velocidade multiplicada pelo frame atual
 void MovePlayer(Player *player, float moveSpeed, float jumpForce, float dt) {
-    CheckMovementKey(player, moveSpeed, jumpForce);
-
-    // Atualiza posicao de acordo com velocidade
+    CheckPressedKey(player, moveSpeed, jumpForce);
     player->position.x += player->velocity.x * dt;
     player->position.y += player->velocity.y * dt;
     player->rect.x = player->position.x;
@@ -481,7 +398,7 @@ void MoveEnemies(Enemy* enemies, int enemyCount, float dt) {
     for (int i = 0; i < enemyCount; i++) {
         // Faz o inimigo ir e voltar
         if (enemies[i].position.x <= enemies[i].minPosition.x || enemies[i].position.x >= enemies[i].maxPosition.x) {
-            enemies[i].velocity.x = -enemies[i].velocity.x; // Inverte dire√ß√£o
+            enemies[i].velocity.x = -enemies[i].velocity.x; // Inverte direÁ„o
         }
         enemies[i].position.x += enemies[i].velocity.x * dt;
         enemies[i].rect.x = enemies[i].position.x;
@@ -531,27 +448,28 @@ void MoveProjectiles(Projectile projectiles[MAX_PROJECTILES], float dt, Player* 
 void CheckPlayerCoinCollision(Player* player, Coin* coins, int* coinCount) {
     for (int i = 0; i < *coinCount; i++) {
         if (coins[i].active && CheckCollisionRecs(player->rect, coins[i].rect)) {
-            player->points += coins[i].points; // Incrementa pontos do jogador
+            player->points += coins[i].points;
             coins[i].active = false;
             printf("Points: %d\n", player->points);
         }
     }
 }
 
-// Verifica colis√£o entre o proj√©til e inimigo
+// Verifica colis„o entre o projÈtil e inimigo
 void CheckProjectileEnemyCollision(Projectile* projectiles, int* enemyCount, Enemy* enemies, Player* player) {
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (projectiles[i].active) {
             for (int j = 0; j < *enemyCount; j++) {
                 if (enemies[j].active && CheckCollisionRecs(projectiles[i].rect, enemies[j].rect)) {
-                    // Colis√£o detectada reduz a vida do inimigo
+                    // Colis„o detectada reduz a vida do inimigo
                     enemies[j].health -= 1;  // Diminui a vida
                     player->points += 100;
-                    if (enemies[j].health <= 0) {
+                    if (enemies[j].health <= 0)
+                    {
                         enemies[j].health = 0;
                         enemies[j].active = false; // Desativa o inimigo se a vida chegar a 0
                     }
-                    projectiles[i].active = false;  // Desativa projetil ap√≥s colis√£o
+                    projectiles[i].active = false;  // Desativa projetil apÛs colis„o
                     break;
                 }
             }
@@ -562,14 +480,11 @@ void CheckProjectileEnemyCollision(Projectile* projectiles, int* enemyCount, Ene
 // Verifica colisao entre jogador e blocos
 bool CheckCollisionWithBlock(Rectangle player, Rectangle block, Vector2* correction) {
     if (CheckCollisionRecs(player, block)) {
-
-        // Fmin: retorna o MENOR valor entre A e B
-        // Fmax: retorna o MAIOR valor entre A e B.
-        // Calcula sobreposicao horizontal entre jogador e bloco
+        // TODO: Comentar o que fmin e fmax fazem e explicar cÛdigo
         float overlapX = fmin(player.x + player.width, block.x + block.width) - fmax(player.x, block.x);
         float overlapY = fmin(player.y + player.height, block.y + block.height) - fmax(player.y, block.y);
 
-        // Resolve com base na menor sobreposicao, retorna valor que jogador deve voltar para "se manter" parado
+        // Resolve com base na menor sobreposicao
         if (overlapX < overlapY) {
             correction->x = (player.x < block.x) ? -overlapX : overlapX;
         } else {
@@ -581,8 +496,7 @@ bool CheckCollisionWithBlock(Rectangle player, Rectangle block, Vector2* correct
 
     return false;
 }
-
-// Dado um texto para preencher e uma coordenada, desenha um ret√¢ngulo
+// Dado um texto para preencher e uma coordenada, desenha um ret‚ngulo
 Rectangle CreateMenuButton(const char *text, int yOffset) {
     return (Rectangle) {
         SCREEN_WIDTH / 2 - MeasureText(text, 50) / 2,
@@ -592,31 +506,31 @@ Rectangle CreateMenuButton(const char *text, int yOffset) {
     };
 }
 
-// Desenha bot√£o com efeito de trocar de cor quando mouse passa por cima
+// Desenha bot„o com efeito de trocar de cor quando mouse passa por cima
 void DrawButton(Rectangle button, const char *text, Vector2 mouse, Color hoverColor, Color defaultColor) {
     Color buttonColor = CheckCollisionPointRec(mouse, button) ? hoverColor : defaultColor;
     DrawRectangleRec(button, buttonColor);
     DrawText(text, button.x + button.width / 2 - MeasureText(text, 20) / 2, button.y + 15, 20, BLACK);
 }
 
-// Detecta se mouse clicou em cima do bot√£o
+// Detecta se mouse clicou em cima do bot„o
 int HandleButtonClick(Rectangle button, Vector2 mouse) {
     return CheckCollisionPointRec(mouse, button) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 }
 
-// Caso haja colis√£o entre jogador e o bloco, e bloco seja M, usa a diferen√ßa entre as duas posi√ß√µes, a variavel correction, √© usada para manter o jogador na sua posi√ß√£o.
+// Caso haja colis„o entre jogador e o bloco, e bloco seja M, usa a diferenÁa entre as duas posiÁıes, a variavel correction, È usada para manter o jogador na sua posiÁ„o.
 void HandleBlockCollision(Player *player, Rectangle block) {
     Vector2 correction = {0, 0};
 
     if (CheckCollisionWithBlock(player->rect, block, &correction)) {
-        if (correction.y != 0) {  // Corre√ß√£o vertical
+        if (correction.y != 0) {  // CorreÁ„o vertical
             player->velocity.y = 0;
             player->position.y += correction.y;
 
             if (correction.y < 0) {
                 player->isGrounded = true;
             }
-        } else if (correction.x != 0) {     // Corre√ß√£o horizontal
+        } else if (correction.x != 0) {     // CorreÁ„o horizontal
             player->velocity.x = 0;
             player->position.x += correction.x;
         }
@@ -629,7 +543,7 @@ void HandleBlockCollision(Player *player, Rectangle block) {
 int Menu(void) {
     Texture2D initializeTexture = LoadTexture("inf_man.png");
 
-    // Inicializa√ß√£o dos bot√µes
+    // InicializaÁ„o dos botıes
     Rectangle start = CreateMenuButton("Iniciar", 0);
     Rectangle leaderboard = CreateMenuButton("Placar de pontos", 100);
     Rectangle exit = CreateMenuButton("Sair", 200);
@@ -644,7 +558,7 @@ int Menu(void) {
         DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, DARKBLUE);
         DrawTexture(initializeTexture, SCREEN_WIDTH / 2 - initializeTexture.width / 2, SCREEN_HEIGHT / 4, WHITE);
 
-        // Renderiza bot√µes
+        // Renderiza botıes
         DrawButton(start, "Iniciar", mouse, YELLOW, LIGHTGRAY);
         if (HandleButtonClick(start, mouse)) {
             return 1;
@@ -665,7 +579,7 @@ int Menu(void) {
 
     return 0;
 }
-// Desenha a tela final do jogo, retornando uma telaa de vit√≥ria ou derrota
+// Desenha a tela final do jogo, retornando uma telaa de vitÛria ou derrota
 void DesenhaTelaFinal(void) {
     while(!IsKeyPressed(KEY_ENTER)) {
         BeginDrawing();
@@ -693,7 +607,7 @@ void HandlePlayerEnemyCollision(Player* player, Enemy* enemies, int enemyCount, 
     }
 }
 
-// Caso haja colis√£o entre jogador e o bloco, e bloco seja O, empurra o jogador para tr√°s de subtrai 1 de sua vida.
+// Caso haja colis„o entre jogador e o bloco, e bloco seja O, empurra o jogador para tr·s de subtrai 1 de sua vida.
 void HandleObstacleCollision(Player *player, Rectangle block) {
     Vector2 correction = {0, 0};
     if (CheckCollisionWithBlock(player->rect, block, &correction)) {
@@ -716,14 +630,14 @@ void HandleObstacleCollision(Player *player, Rectangle block) {
 int ComparaJogadores(JogadorLeader PlayerA, JogadorLeader PlayerB) {
     // Ordena por pontos de forma decrescente
     if (PlayerA.points != PlayerB.points) {
-        return PlayerB.points - PlayerA.points; // Maior pontua√ß√£o primeiro
+        return PlayerB.points - PlayerA.points; // Maior pontuaÁ„o primeiro
     }
 
-    // Se as pontua√ß√µes forem iguais, ordena por nome em ordem alfab√©tica
+    // Se as pontuaÁıes forem iguais, ordena por nome em ordem alfabÈtica
     return strcmp(PlayerA.nome, PlayerB.nome);
 }
 
-// Ordena os jogadores por pontua√ß√£o (decrescente)
+// Ordena os jogadores por pontuaÁ„o (decrescente)
 void OrdenaPlayers(JogadorLeader jogadores[]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4 - i; j++) {
@@ -736,7 +650,7 @@ void OrdenaPlayers(JogadorLeader jogadores[]) {
     }
 }
 
-// Cria o arquivo top_scores.bin com jogadores fict√≠cios
+// Cria o arquivo top_scores.bin com jogadores fictÌcios
 void CriaTop5Jogadores(void) {
     FILE *arq;
     JogadorLeader Players[5] = {
@@ -751,7 +665,7 @@ void CriaTop5Jogadores(void) {
 
     arq = fopen("top_scores.bin", "wb");
     if (!arq) {
-        printf("Erro na cria√ß√£o do arquivo top_scores.bin!\n");
+        printf("Erro na criaÁ„o do arquivo top_scores.bin!\n");
         return;
     }
     fwrite(Players, sizeof(JogadorLeader), 5, arq);
@@ -805,11 +719,11 @@ void DesenhaTop5(int *guarda) {
     fclose(arq);
 
     if (bytesRead != 5) {
-        printf("Erro ao ler dados do arquivo ou o arquivo est√° incompleto.\n");
+        printf("Erro ao ler dados do arquivo ou o arquivo est· incompleto.\n");
         return;
     }
 
-    Rectangle exitButton = {SCREEN_WIDTH - 150, 20, 130, 90};
+    Rectangle exitButton = {SCREEN_WIDTH - 150, 20, 130, 90}; // Exit button rectangle
 
     BeginDrawing();
     ClearBackground(RAYWHITE);
@@ -822,13 +736,14 @@ void DesenhaTop5(int *guarda) {
         j += 40;
     }
 
+    // Draw the exit button
     DrawRectangleRec(exitButton, RED);
     DrawText("Aperte \nenter \npara sair", exitButton.x + 20, exitButton.y + 10, 20, WHITE);
 
     EndDrawing();
 }
 
-// Atualiza o leaderboard com o novo jogador e sua pontua√ß√£o
+// Atualiza o leaderboard com o novo jogador e sua pontuaÁ„o
 void AtualizaTop5(JogadorLeader player1) {
     FILE *arq;
     JogadorLeader Players[5];
@@ -848,7 +763,7 @@ void AtualizaTop5(JogadorLeader player1) {
     fclose(arq);
 }
 
-// Verifica a colis√£o com o port√£o e registra a pontua√ß√£o do jogador
+// Verifica a colis„o com o port„o e registra a pontuaÁ„o do jogador
 void HandleGateCollision(Player *player, Rectangle block) {
     char nomejogador[MAX_NOME];
     Vector2 correction = {0, 0};
@@ -859,12 +774,12 @@ void HandleGateCollision(Player *player, Rectangle block) {
         // Verifica se o arquivo existe
         arq = fopen("top_scores.bin", "rb");
         if (!arq) {
-            printf("Arquivo n√£o encontrado. Criando top_scores.bin...\n");
+            printf("Arquivo n„o encontrado. Criando top_scores.bin...\n");
             CriaTop5Jogadores();
-            arq = fopen("top_scores.bin", "rb"); // Reabre ap√≥s cria√ß√£o
+            arq = fopen("top_scores.bin", "rb"); // Reabre apÛs criaÁ„o
         }
 
-        // L√™ os jogadores do arquivo
+        // LÍ os jogadores do arquivo
         fread(Players, sizeof(JogadorLeader), 5, arq);
         fclose(arq);
 
@@ -892,12 +807,12 @@ void HandleGateCollision(Player *player, Rectangle block) {
         fclose(arq);
 
         // Exibe mensagem e finaliza o jogo
-        player->hasFinished = 1;
-        printf("Parab√©ns, %s! Sua pontua√ß√£o de %d foi registrada.\n", nomejogador, jogadorAtual.points);
+        printf("ParabÈns, %s! Sua pontuaÁ„o de %d foi registrada.\n", nomejogador, jogadorAtual.points);
+        player->health = -1;
     }
 }
 
-// Percorre o array de caracteres (mapa), cria um retangulo e usa CheckCollisionWithBlock() para determinar se o jogador est√° colidindo com algum bloco.
+// Percorre o array de caracteres (mapa), cria um retangulo e usa CheckCollisionWithBlock() para determinar se o jogador est· colidindo com algum bloco.
 void HandlePlayerBlockCollisions(Player *player, char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, float blockSize) {
     player->isGrounded = false;
 
@@ -918,7 +833,7 @@ void HandlePlayerBlockCollisions(Player *player, char map[MAX_HEIGHT][MAX_WIDTH]
     }
 }
 
-// Chama todas as fun√ß√µes de colis√£o 1 vez s√≥
+// Chama todas as funÁıes de colis„o 1 vez sÛ
 void HandleCollisions(Player* player, Enemy* enemies, int enemyCount, Projectile projectiles[MAX_PROJECTILES], char map[MAX_HEIGHT][MAX_WIDTH], int rows, int cols, float blockSize, unsigned currentFrame, float dt, Coin coins[MAX_WIDTH], int *coinCount) {
     HandlePlayerBlockCollisions(player, map, rows, cols, blockSize);
     HandlePlayerEnemyCollision(player, enemies, enemyCount, &currentFrame, dt);
@@ -931,216 +846,266 @@ void UpdatePlayerAnimation(Player *player, float *frameTimer, float frameSpeed, 
     if (*frameTimer >= frameSpeed) { // Condicional para nao entrar em loop infinito
         *frameTimer = 0.0f;
 
-        if (!player->isGrounded) {  // Jogador est√° no ar
-            *currentFrame = player->isShooting ? 10 : 5; // Anima√ß√£o de pulo
-        } else if (player->velocity.x != 0)  // Verifica se jogador est√° se mexendo horizontalmente (eixo x)
+        if (!player->isGrounded) {  // Jogador est· no ar
+            *currentFrame = player->isShooting ? 10 : 5; // AnimaÁ„o de pulo
+        } else if (player->velocity.x != 0)  // Verifica se jogador est· se mexendo horizontalmente (eixo x)
             {
 
-            if (player->isShooting) { // Verifica se jogador est√° atirando, se sim:
+            if (player->isShooting) { // Verifica se jogador est· atirando, se sim:
                 *currentFrame = (*currentFrame < 6 || *currentFrame > 8) ? 7 : *currentFrame + 1; // Varia entre texturas 6, 7 e 9
-            } else {  // Se n√£o est√° atirando:
+            } else {  // Se n„o est· atirando:
                 *currentFrame = (*currentFrame < 1 || *currentFrame > 3) ? 2 : *currentFrame + 1; // Varia entre texturas 1, 2 e 3
             }
-        } else { // Jogador nao est√° fazendo nenhum movimento
-            *currentFrame = player->isShooting ? 7 : 0; // Anima√ß√£o de estar parado ou parado e atirando
+        } else { // Jogador nao est· fazendo nenhum movimento
+            *currentFrame = player->isShooting ? 7 : 0; // AnimaÁ„o de estar parado ou parado e atirando
         }
     }
 }
 
-// Atualiza estado do jogador frame a frame e chama a fun√ß√£o cada vez para trocar textura de acordo com estado
+// Atualiza estado do jogador frame a frame e chama a funÁ„o cada vez para trocar textura de acordo com estado
 void UpdatePlayerAnimationState(Player *player, float *frameTimer, float frameSpeed, unsigned *currentFrame, Rectangle *frameRec, int frameWidth) {
-    *frameTimer += GetFrameTime(); // Pega tempo desde o √∫ltimo frame
+    *frameTimer += GetFrameTime(); // Pega tempo desde o ˙ltimo frame
     UpdatePlayerAnimation(player, frameTimer, frameSpeed, currentFrame); // Aplica textura ao jogador
     frameRec->x = frameWidth * (*currentFrame);
     frameRec->width = player->facingRight ? -frameWidth : frameWidth;
 }
 
 // Verifica vida do jogador e, se abaixo de 0, encerra o jogo
-int isPlayerDead(Player player) {
-    if (player.health <= -1) {
+int isPlayerDead(Player *player) {
+    if (player->health < 0) {
         return 1;
     } else {
         return 0;
     }
 }
 
-int hasPlayerFinishedTheGame(Player player) {
-    if (player.health >= 0 && player.hasFinished != 1) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
+int BeginGame(Player *player,
+             Texture2D infmanTex,
+             Rectangle frameRec,
+             float *frameTimer,
+             unsigned *currentFrame,
+             Camera2D camera,
+             float frameSpeed,
+             float gravity,
+             float playerSpeed,
+             float jumpForce,
+             float enemySpeedX,
+             float enemySpeedY,
+             float enemyOffset,
+             float projectileWidth,
+             float projectileHeight,
+             float projectileSpeed,
+             char map[MAX_HEIGHT][MAX_WIDTH],
+             int rows,
+             int cols,
+             Coin coins[MAX_WIDTH],
+             int *coinCount,
+             Enemy enemies[MAX_WIDTH],
+             int enemyCount,
+             Projectile projectiles[MAX_PROJECTILES],
+             Texture2D background,
+             Texture2D blockTexture,
+             Texture2D obstacleTexture,
+             Texture2D gateTexture,
+             Texture2D enemiesTexture,
+             Texture2D heartTexture,
+             int frameWidth,
+             int *guarda,
+             Texture2D enemyTex,
+             Rectangle enemyFrameRec
+            )
+{
 
-int BeginGame(GameConfig *config, GameAssets *assets, GameState *state) {
     float dt = GetFrameTime();
 
-    ApplyGravity(&state->player, config->gravity, dt);
+    ApplyGravity(player, gravity, dt);
 
-    if (hasPlayerFinishedTheGame(state->player)) {
-        UpdatePlayerAnimationState(
-            &state->player, &state->frameTimer,
-            config->frameSpeed, &state->currentFrame,
-            &assets->playerFrameRec, assets->playerFrameWidth
-        );
+    if(!isPlayerDead(player)) {
 
-        MovePlayer(&state->player, config->playerSpeed, config->jumpForce, dt);
-        MoveCamera(&state->camera, &state->player);
-        MoveEnemies(state->enemies, state->enemyCount, dt);
-        MoveProjectiles(state->projectiles, dt, &state->player, SCREEN_WIDTH, state->map, state->rows, state->cols, BLOCK_SIZE);
+    UpdatePlayerAnimationState(player, frameTimer, frameSpeed, currentFrame, &frameRec, frameWidth);
+    HandleRespawn(player, SCREEN_HEIGHT);
 
-        CreateProjectile(&state->player, state->projectiles, config->projectileWidth, config->projectileHeight, config->projectileSpeed, dt);
-        HandleCollisions(
-            &state->player, state->enemies, state->enemyCount,
-            state->projectiles, state->map, state->rows, state->cols,
-            BLOCK_SIZE, state->currentFrame, dt, state->coins, &state->coinCount
-        );
+    // Movimento
+    MovePlayer(player, playerSpeed, jumpForce, dt);
+    MoveCamera(&camera, player);
+    MoveEnemies(enemies, enemyCount, dt);
+    MoveProjectiles(projectiles, dt, player, SCREEN_WIDTH, map, rows, cols, BLOCK_SIZE);
 
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
+    // Outros
+    CreateProjectile(player, projectiles, projectileWidth, projectileHeight, projectileSpeed, dt);
+    HandleCollisions(player, enemies, enemyCount, projectiles, map, rows, cols, BLOCK_SIZE, *currentFrame, dt, coins, coinCount);
 
-        BeginMode2D(state->camera);
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
 
-        RenderBackground(assets->background, state->rows, state->cols);
+    BeginMode2D(camera);
 
-        DrawTexturePro(
-            assets->playerTexture, assets->playerFrameRec,
-            state->player.rect, (Vector2){0, 0}, 0.0f, WHITE
-        );
-        RenderCoins(state->coins, state->coinCount);
-        RenderMap(
-            state->map, state->rows, state->cols,
-            BLOCK_SIZE, assets->blockTexture,
-            assets->obstacleTexture, assets->gateTexture
-        );
-        RenderProjectiles(state->projectiles);
-        RenderEnemies(
-            state->enemies, state->enemyCount, BLOCK_SIZE,
-            assets->enemiesTexture, &assets->enemyFrameRec,
-            &state->frameTimerEnemies, &state->currentEnemyFrame
-        );
+    // Renderiza o fundo atr·s do jogador
+    RenderBackground(background, rows, cols);
 
-        EndMode2D();
+    // Renderiza jogador
+    DrawTexturePro(infmanTex, frameRec, player->rect, (Vector2) {0, 0}, 0.0f, WHITE);
 
-        RenderHUD(state->player.health, assets->heartTexture, state->player.points);
+    // Renderiza mapa e elementos din‚micos
+    RenderCoins(coins, *coinCount);
+    RenderMap(map, rows, cols, BLOCK_SIZE, blockTexture, obstacleTexture, gateTexture);
+    RenderProjectiles(projectiles);
+    RenderEnemies(enemies, enemyCount, BLOCK_SIZE, enemiesTexture, &enemyFrameRec, frameTimer, currentFrame);
 
-        EndDrawing();
-        state->guarda = 1;
+    EndMode2D();
+
+    // Interface
+    int heartX = 85;
+    int heartY = 37;
+    float heartWidth = 30.0f;
+    float heartHeight = 30.0f;
+
+    for (int i = 0; i < player->health; i++) {
+        Rectangle destRect = { heartX + i * (heartWidth + 5), heartY, heartWidth, heartHeight };
+        DrawTexturePro(heartTexture, (Rectangle) {0, 0, heartTexture.width, heartTexture.height}, destRect, (Vector2){0, 0}, 0.0f, WHITE);
+    }
+
+    int textX = 10;
+    int textY = 40;
+    int textHeight = 20;
+    int textWidth = MeasureText(TextFormat("Health:"), textHeight);
+    DrawRectangle(textX - 5, textY - 5, textWidth + 10, textHeight + 10, BLACK);
+    DrawText(TextFormat("Health:"), textX, textY, 20, WHITE);
+
+    int pointsX = 10;
+    int pointsY = 70;
+    int pointsHeight = 20;
+    int pointsWidth = MeasureText(TextFormat("Points: %d", player->points), textHeight);
+    DrawRectangle(pointsX - 5, pointsY - 5, pointsWidth + 10, pointsHeight + 10, BLACK);
+    DrawText(TextFormat("Points: %d", player->points), 10, 70, textHeight, WHITE);
+
+    EndDrawing();
+
+    *guarda = 1;
     } else {
-        state->guarda = 0;
+        *guarda = 0;
 
-        int test = InitializeEnemies(state->map, state->rows, state->cols, state->enemies, BLOCK_SIZE, config->enemySpeedX, config->enemySpeedY, config->enemyOffset);
-        int teste = InitializeCoins(state->map, state->rows, state->cols, state->coins, BLOCK_SIZE);
+        int test = InitializeEnemies(map, rows, cols, enemies, BLOCK_SIZE, enemySpeedX, enemySpeedY, enemyOffset);
 
-        if(isPlayerDead(state->player)) {
+        if(player->points < 0) {
             DesenhaTelaFinal();
         }
 
-        state->player.health = 3;
-        state->player.hasFinished = 0;
-        state->player.points = 0;
-        state->player.position= state->player.spawnPoint;
-
+        player->health = 3;
+        player->points = 0;
+        player->position = player->spawnPoint;
         WaitTime(0.1);
     }
-    return 0;
 }
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "INF-MAN");
-
     InitAudioDevice();
+    // World control variables
+    float gravity = 800.0;
+    float playerSpeed = 200.0;
+    float jumpForce = -300.0;
+
+    float enemySpeedX = 150.0;
+    float enemySpeedY = 50.0;
+    float enemyOffset = 200.0f;
+
+    float projectileWidth = 20.0;
+    float projectileHeight = 10.0;
+    float projectileSpeed = 400.0;
+
+    float frameSpeed = 0.15f;
+    int guarda = 0;
     Music music = LoadMusicStream("musica_jogo.wav");
-    PlayMusicStream(music);
-
-    GameConfig config = {
-        .gravity = 800.0,
-        .playerSpeed = 200.0,
-        .jumpForce = -300.0,
-        .enemySpeedX = 150.0,
-        .enemySpeedY = 50.0,
-        .enemyOffset = 200.0f,
-        .projectileWidth = 20.0,
-        .projectileHeight = 10.0,
-        .projectileSpeed = 400.0,
-        .frameSpeed = 0.15f
-    };
-
-    GameState state = { .guarda = 0 };
-    LoadMap("map.txt", state.map, &state.rows, &state.cols);
-    if (state.rows == 0 || state.cols == 0) {
+    // Load map
+    int rows, cols;
+    char map[MAX_HEIGHT][MAX_WIDTH];
+    LoadMap("map.txt", map, &rows, &cols);
+    if (rows == 0 || cols == 0) {
         CloseWindow();
         return 1;
     }
 
-    state.player = InitializePlayer();
-    if (!FindPlayerSpawnPoint(state.map, state.rows, state.cols, &state.player)) {
+    // Initialize player
+    Player player = InitializePlayer();
+    if (!FindPlayerSpawnPoint(map, rows, cols, &player)) {
         CloseWindow();
         return 1;
     }
 
-    GameAssets assets = {
-        .background = LoadTexture("background.png"),
-        .blockTexture = LoadTexture("tile1.png"),
-        .obstacleTexture = LoadTexture("spike.png"),
-        .gateTexture = LoadTexture("gate.png"),
-        .enemiesTexture = LoadTexture("enemies.png"),
-        .heartTexture = LoadTexture("heart.png"),
-        .playerTexture = LoadTexture("inf_man.png")
-    };
+    // Load textures
+    Texture2D background = LoadTexture("background.png");
+    Texture2D blockTexture = LoadTexture("tile1.png");
+    Texture2D obstacleTexture = LoadTexture("spike.png");
+    Texture2D gateTexture = LoadTexture("gate.png");
+    Texture2D enemiesTexture = LoadTexture("enemies.png");
+    Texture2D heartTexture = LoadTexture("heart.png");
+    Texture2D initializeTexture = LoadTexture("inf_man.png");
 
-    InitializePlayerTextureAndAnimation(
-        &assets.playerTexture,
-        &assets.playerFrameRec,
-        &assets.playerFrameWidth,
-        &assets.enemyTexture,
-        &assets.enemyFrameRec,
-        &assets.enemyFrameWidth
-    );
+    Texture2D infmanTex;
+    Rectangle frameRec;
+    int frameWidth;
 
-    state.camera = InitializeCamera(&state.player);
-    state.coinCount = InitializeCoins(state.map, state.rows, state.cols, state.coins, BLOCK_SIZE);
-    state.enemyCount = InitializeEnemies(
-        state.map, state.rows, state.cols,
-        state.enemies, BLOCK_SIZE,
-        config.enemySpeedX, config.enemySpeedY, config.enemyOffset
-    );
-    InitializeProjectiles(state.projectiles);
+    Texture2D enemyTex;
+    Rectangle enemyFrameRec;
+    int enemyFrameWidth;
+
+    InitializePlayerTextureAndAnimation(&infmanTex, &frameRec, &frameWidth, &enemyTex, &enemyFrameRec, &enemyFrameWidth);
+
+    Camera2D camera = InitializeCamera(&player);
+    float frameTimer = 0.0f;
+    unsigned currentFrame = 0;
+
+    Coin coins[MAX_WIDTH];
+    int coinCount = InitializeCoins(map, rows, cols, coins, BLOCK_SIZE);
+
+    Enemy enemies[MAX_WIDTH];
+    int enemyCount = InitializeEnemies(map, rows, cols, enemies, BLOCK_SIZE, enemySpeedX, enemySpeedY, enemyOffset);
+
+    Projectile projectiles[MAX_PROJECTILES];
+    InitializeProjectiles(projectiles);
 
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(music);
+        SetMusicVolume(music,0.5);
         float dt = GetFrameTime();
-        switch (state.guarda) {
+        switch (guarda) {
             case 0:
-                state.guarda = Menu();
-                break;
+            guarda = Menu();
+            break;
             case 1:
-                BeginGame(&config, &assets, &state);
+                BeginGame(&player, infmanTex, frameRec, &frameTimer, &currentFrame, camera, frameSpeed,
+                                        gravity, playerSpeed, jumpForce, enemySpeedX, enemySpeedY, enemyOffset,
+                                        projectileWidth, projectileHeight, projectileSpeed, map, rows, cols,
+                                        coins, &coinCount, enemies, enemyCount, projectiles, background,
+                                        blockTexture, obstacleTexture, gateTexture, enemiesTexture, heartTexture,
+                                        frameWidth, &guarda, enemyTex, enemyFrameRec);
+
                 break;
-            case 2:
+            case 2: {
                     FILE *arq = fopen("top_scores.bin", "rb");
                     if (!arq) {
-                        CriaTop5Jogadores();  // Cria o arquivo caso n√£o exista
+                        CriaTop5Jogadores();  // Cria o arquivo caso n„o exista
                     }
                     else {
-                        DesenhaTop5(&state.guarda);// Exibe o leaderboard
+                        DesenhaTop5(&guarda);// Exibe o leaderboard
                         if(IsKeyPressed(KEY_ENTER)) {
-                            state.guarda = 0;
+                            guarda = 0;
                         } else {
-                            state.guarda = 2;
+                            guarda = 2;
                         }
                     }
                     break;
-            case 3:
+                }
+            case 3: {
                 StopMusicStream(music);
                 CloseAudioDevice();
                 CloseWindow();
                 return 0;
+            }
         }
     }
-
-    CloseWindow();
     return 0;
 }
